@@ -371,7 +371,7 @@ export default function HomePage() {
                 <Card
                   onClick={() => openDialog(m.id)}
                   className={cn(
-                    "group relative flex cursor-pointer flex-col overflow-hidden border-2 transition-all duration-200",
+                    "group relative flex cursor-pointer flex-col overflow-hidden border-2 transition-all duration-200 py-0",
                     filled
                       ? `${m.borderColor} ${m.lightBg} shadow-md`
                       : "border-border hover:border-primary/20 hover:shadow-md",
