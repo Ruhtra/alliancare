@@ -116,7 +116,7 @@ const mockData: MeasurementRecord[] = [
 ];
 
 export default function HistoricoPage() {
-  const [viewMode, setViewMode] = useState<"table" | "chart">("table");
+  const [viewMode, setViewMode] = useState<"table" | "chart">("chart");
   const [filter, setFilter] = useState("7");
 
   const handleExportCSV = () => {

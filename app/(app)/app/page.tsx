@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Gauge,
   HeartPulse,
@@ -34,6 +35,9 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
+  Sunrise,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -123,16 +127,34 @@ export default function HomePage() {
   const [showWarning, setShowWarning] = useState(false);
   const [showConfirmAlert, setShowConfirmAlert] = useState(false);
   const [pendingMeasurementId, setPendingMeasurementId] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState("");
 
-  const getCurrentTime = () => {
-    return new Date().toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  useEffect(() => {
+    const updateTime = () => {
+      setCurrentTime(
+        new Date().toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getPeriodOfDay = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return { label: "Manhã", icon: Sunrise, color: "text-orange-500" };
+    if (hour >= 12 && hour < 18) return { label: "Tarde", icon: Sun, color: "text-yellow-500" };
+    return { label: "Noite", icon: Moon, color: "text-blue-500" };
   };
 
   const filledCount = Object.keys(filledData).length;
   const totalCount = measurements.length;
+  const completionPercentage = Math.round((filledCount / totalCount) * 100);
+  const period = getPeriodOfDay();
+  const PeriodIcon = period.icon;
 
   const handleOpenDialog = (measurementId: string) => {
     if (filledData[measurementId]) {
@@ -201,23 +223,40 @@ export default function HomePage() {
 
   return (
     <div className="flex h-[calc(100vh-5rem)] flex-col md:h-[calc(100vh-5rem)]">
-      <div className="container mx-auto flex h-full max-w-6xl flex-col px-4 py-4 md:py-6">
-        {/* Compact Header */}
-        <div className="mb-4 flex items-center justify-between md:mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground md:text-3xl">
-              Sinais Vitais
-            </h1>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-3.5 w-3.5" />
-              <span>{getCurrentTime()}</span>
-              <span className="text-xs">• {filledCount}/{totalCount} preenchidos</span>
+      <div className="container mx-auto flex h-full max-w-6xl flex-col px-4 py-3 md:py-4">
+        {/* Header with Period, Time, and Progress */}
+        <div className="mb-3 space-y-3 md:mb-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="mb-1 flex items-center gap-2">
+                <PeriodIcon className={cn("h-5 w-5", period.color)} />
+                <h1 className="text-2xl font-bold text-foreground md:text-3xl">
+                  {period.label}
+                </h1>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-4 w-4" />
+                  <span className="font-medium">{currentTime}</span>
+                </div>
+                <span className="text-xs">•</span>
+                <span className="text-xs font-medium">
+                  {filledCount}/{totalCount} sinais preenchidos
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-2xl font-bold text-primary md:text-3xl">
+                {completionPercentage}%
+              </span>
+              <span className="text-xs text-muted-foreground">conclusão</span>
             </div>
           </div>
+          <Progress value={completionPercentage} className="h-2" />
         </div>
 
         {/* Grid 2x3 - Fixed, no scroll */}
-        <div className="grid flex-1 grid-cols-2 gap-3 md:gap-4">
+        <div className="grid flex-1 grid-cols-2 gap-2.5 md:gap-3">
           {measurements.map((measurement) => {
             const Icon = measurement.icon;
             const isFilled = !!filledData[measurement.id];
@@ -235,35 +274,35 @@ export default function HomePage() {
                   <Card
                     onClick={() => handleOpenDialog(measurement.id)}
                     className={cn(
-                      "group relative flex cursor-pointer flex-col justify-between border-2 p-3 transition-all duration-200 hover:shadow-lg md:p-4",
+                      "group relative flex cursor-pointer flex-col justify-between border-2 p-3 transition-all duration-200 hover:shadow-xl md:p-3.5",
                       isFilled
-                        ? `${measurement.borderColor} ${measurement.bgColor}`
-                        : "border-border hover:border-primary/30"
+                        ? `${measurement.borderColor} ${measurement.bgColor} shadow-md`
+                        : "border-border bg-card hover:border-primary/30 hover:bg-accent/5"
                     )}
                   >
                     {/* Status Badge */}
                     {isFilled && (
                       <div className="absolute right-2 top-2">
-                        <CheckCircle2 className={cn("h-5 w-5", measurement.color)} />
+                        <CheckCircle2 className={cn("h-4 w-4 md:h-5 md:w-5", measurement.color)} />
                       </div>
                     )}
 
                     {/* Icon and Title */}
-                    <div className="mb-2">
+                    <div className="mb-1.5">
                       <div
                         className={cn(
-                          "mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg md:h-12 md:w-12",
-                          isFilled ? measurement.bgColor : "bg-muted"
+                          "mb-1.5 inline-flex h-9 w-9 items-center justify-center rounded-lg md:h-10 md:w-10",
+                          measurement.bgColor
                         )}
                       >
                         <Icon
                           className={cn(
-                            "h-5 w-5 md:h-6 md:w-6",
-                            isFilled ? measurement.color : "text-muted-foreground"
+                            "h-5 w-5 md:h-5 md:w-5",
+                            measurement.color
                           )}
                         />
                       </div>
-                      <h3 className="text-sm font-bold text-foreground md:text-base">
+                      <h3 className="text-xs font-bold text-foreground md:text-sm">
                         {measurement.shortTitle}
                       </h3>
                     </div>
@@ -271,11 +310,11 @@ export default function HomePage() {
                     {/* Value Display */}
                     <div className="mt-auto">
                       {isFilled ? (
-                        <p className={cn("text-lg font-bold md:text-xl", measurement.color)}>
+                        <p className={cn("text-base font-bold md:text-lg", measurement.color)}>
                           {displayValue}
                         </p>
                       ) : (
-                        <p className="text-xs text-muted-foreground md:text-sm">
+                        <p className="text-xs text-muted-foreground">
                           Toque para preencher
                         </p>
                       )}
@@ -328,7 +367,7 @@ export default function HomePage() {
                       <div className="flex items-center gap-3 rounded-lg border-2 bg-muted/50 px-3 py-2.5">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="font-semibold text-foreground">
-                          {getCurrentTime()}
+                          {currentTime}
                         </span>
                       </div>
                     </div>
@@ -353,11 +392,11 @@ export default function HomePage() {
         </div>
 
         {/* Confirm Button */}
-        <div className="mt-4 md:mt-6">
+        <div className="mt-3 md:mt-4">
           <Button
             onClick={handleConfirm}
             disabled={filledCount === 0}
-            className={cn("h-14 w-full text-base font-bold shadow-lg", buttonState.color)}
+            className={cn("h-12 w-full text-sm font-bold shadow-lg transition-all md:h-14 md:text-base", buttonState.color)}
           >
             {filledCount === totalCount ? (
               <CheckCircle2 className="mr-2 h-5 w-5" />
