@@ -247,8 +247,8 @@ export default function HomePage() {
           : "bg-gradient-to-r from-emerald-500 to-green-400 text-white shadow-lg shadow-emerald-500/25";
 
   return (
-    <div className="flex h-[calc(100dvh-6rem)] flex-col overflow-hidden md:h-[calc(100dvh-5.5rem)] justify-center items-center">
-      <div className="flex h-full flex-col px-4 py-3 md:max-w-5xl md:px-6 md:py-4">
+    <div className="flex h-[calc(100dvh-6rem)] flex-col overflow-hidden md:h-[calc(100dvh-5.5rem)]">
+      <div className="flex h-full flex-col px-4 py-3 md:max-w-5xl md:mx-auto md:px-6 md:py-4">
 
         {/* ── Hero Header ── */}
         <div className={cn("relative mb-4 overflow-hidden rounded-2xl bg-gradient-to-r p-5 text-white shadow-xl md:mb-5 md:p-6", period.gradient)}>
