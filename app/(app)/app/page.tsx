@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import {
   Gauge,
   HeartPulse,
@@ -38,6 +39,8 @@ import {
   Sunrise,
   Sun,
   Moon,
+  ChevronRight,
+  XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +52,9 @@ type FilledData = {
   [key: string]: MeasurementValue;
 };
 
+// Horários configurados (exemplo: 18h e 21h)
+const scheduleHours = ["18:00", "21:00"];
+
 const measurements = [
   {
     id: "pressao",
@@ -58,7 +64,6 @@ const measurements = [
     color: "text-red-600",
     bgColor: "bg-red-50",
     borderColor: "border-red-200",
-    hoverBorder: "hover:border-red-400",
     fields: [
       { id: "sistolica", label: "Sistólica", placeholder: "120", unit: "mmHg" },
       { id: "diastolica", label: "Diastólica", placeholder: "80", unit: "mmHg" },
@@ -72,7 +77,6 @@ const measurements = [
     color: "text-pink-600",
     bgColor: "bg-pink-50",
     borderColor: "border-pink-200",
-    hoverBorder: "hover:border-pink-400",
     fields: [{ id: "bpm", label: "BPM", placeholder: "72", unit: "bpm" }],
   },
   {
@@ -83,7 +87,6 @@ const measurements = [
     color: "text-orange-600",
     bgColor: "bg-orange-50",
     borderColor: "border-orange-200",
-    hoverBorder: "hover:border-orange-400",
     fields: [{ id: "temp", label: "Temperatura", placeholder: "36.5", unit: "°C" }],
   },
   {
@@ -94,7 +97,6 @@ const measurements = [
     color: "text-blue-600",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-200",
-    hoverBorder: "hover:border-blue-400",
     fields: [{ id: "spo2", label: "SpO₂", placeholder: "98", unit: "%" }],
   },
   {
@@ -105,7 +107,6 @@ const measurements = [
     color: "text-green-600",
     bgColor: "bg-green-50",
     borderColor: "border-green-200",
-    hoverBorder: "hover:border-green-400",
     fields: [{ id: "weight", label: "Peso", placeholder: "70.5", unit: "kg" }],
   },
   {
@@ -116,7 +117,6 @@ const measurements = [
     color: "text-amber-600",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-200",
-    hoverBorder: "hover:border-amber-400",
     fields: [{ id: "pain", label: "Dor (0-10)", placeholder: "0", unit: "/10" }],
   },
 ];
@@ -128,16 +128,49 @@ export default function HomePage() {
   const [showConfirmAlert, setShowConfirmAlert] = useState(false);
   const [pendingMeasurementId, setPendingMeasurementId] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState("");
+  const [currentSchedule, setCurrentSchedule] = useState<string | null>(null);
+  const [nextSchedule, setNextSchedule] = useState<string | null>(null);
 
   useEffect(() => {
     const updateTime = () => {
+      const now = new Date();
       setCurrentTime(
-        new Date().toLocaleTimeString("pt-BR", {
+        now.toLocaleTimeString("pt-BR", {
           hour: "2-digit",
           minute: "2-digit",
         })
       );
+
+      // Determinar horário atual e próximo
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+      let current: string | null = null;
+      let next: string | null = null;
+
+      for (let i = 0; i < scheduleHours.length; i++) {
+        const [hour, minute] = scheduleHours[i].split(":").map(Number);
+        const scheduleTimeInMinutes = hour * 60 + minute;
+
+        if (currentTimeInMinutes < scheduleTimeInMinutes) {
+          next = scheduleHours[i];
+          if (i > 0) {
+            current = scheduleHours[i - 1];
+          }
+          break;
+        }
+      }
+
+      // Se passou de todos os horários, atual é o último
+      if (!next && scheduleHours.length > 0) {
+        current = scheduleHours[scheduleHours.length - 1];
+      }
+
+      setCurrentSchedule(current);
+      setNextSchedule(next);
     };
+
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
@@ -196,7 +229,6 @@ export default function HomePage() {
     if (filledCount < totalCount) {
       setShowConfirmAlert(true);
     } else {
-      // All filled - confirm successfully
       alert("Sinais vitais confirmados com sucesso!");
     }
   };
@@ -223,40 +255,63 @@ export default function HomePage() {
 
   return (
     <div className="flex h-[calc(100vh-5rem)] flex-col md:h-[calc(100vh-5rem)]">
-      <div className="container mx-auto flex h-full max-w-6xl flex-col px-4 py-3 md:py-4">
-        {/* Header with Period, Time, and Progress */}
-        <div className="mb-3 space-y-3 md:mb-4">
+      <div className="container mx-auto flex h-full max-w-6xl flex-col px-4 py-2.5 md:py-3">
+        {/* Expanded Header */}
+        <div className="mb-2.5 space-y-2.5 rounded-2xl border-2 bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4 shadow-sm md:mb-3 md:space-y-3 md:p-5">
           <div className="flex items-start justify-between">
-            <div>
-              <div className="mb-1 flex items-center gap-2">
-                <PeriodIcon className={cn("h-5 w-5", period.color)} />
+            <div className="flex-1">
+              <div className="mb-2 flex items-center gap-2">
+                <PeriodIcon className={cn("h-6 w-6", period.color)} />
                 <h1 className="text-2xl font-bold text-foreground md:text-3xl">
                   {period.label}
                 </h1>
               </div>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground md:gap-3 md:text-sm">
                 <div className="flex items-center gap-1.5">
                   <Clock className="h-4 w-4" />
-                  <span className="font-medium">{currentTime}</span>
+                  <span className="font-semibold">{currentTime}</span>
                 </div>
-                <span className="text-xs">•</span>
-                <span className="text-xs font-medium">
-                  {filledCount}/{totalCount} sinais preenchidos
+                <span className="hidden md:inline">•</span>
+                <span className="font-medium">
+                  {filledCount}/{totalCount} preenchidos
                 </span>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-1">
-              <span className="text-2xl font-bold text-primary md:text-3xl">
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="text-3xl font-extrabold text-primary md:text-4xl">
                 {completionPercentage}%
               </span>
               <span className="text-xs text-muted-foreground">conclusão</span>
             </div>
           </div>
-          <Progress value={completionPercentage} className="h-2" />
+
+          <Progress value={completionPercentage} className="h-2.5" />
+
+          {/* Schedule Information */}
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            {currentSchedule && (
+              <Badge variant="default" className="gap-1.5 px-2.5 py-1 text-xs font-semibold md:text-sm">
+                <Clock className="h-3.5 w-3.5" />
+                Horário Atual: {currentSchedule}
+              </Badge>
+            )}
+            {nextSchedule && (
+              <Badge variant="outline" className="gap-1.5 px-2.5 py-1 text-xs font-semibold md:text-sm">
+                <ChevronRight className="h-3.5 w-3.5" />
+                Próximo: {nextSchedule}
+              </Badge>
+            )}
+            {!nextSchedule && currentSchedule && (
+              <Badge variant="secondary" className="gap-1.5 px-2.5 py-1 text-xs font-semibold text-amber-600 md:text-sm">
+                <AlertCircle className="h-3.5 w-3.5" />
+                Último horário do dia
+              </Badge>
+            )}
+          </div>
         </div>
 
-        {/* Grid 2x3 - Fixed, no scroll */}
-        <div className="grid flex-1 grid-cols-2 gap-2.5 md:gap-3">
+        {/* Compact Grid 2x3 */}
+        <div className="grid flex-1 grid-cols-2 gap-2 md:gap-2.5">
           {measurements.map((measurement) => {
             const Icon = measurement.icon;
             const isFilled = !!filledData[measurement.id];
@@ -274,7 +329,7 @@ export default function HomePage() {
                   <Card
                     onClick={() => handleOpenDialog(measurement.id)}
                     className={cn(
-                      "group relative flex cursor-pointer flex-col justify-between border-2 p-3 transition-all duration-200 hover:shadow-xl md:p-3.5",
+                      "group relative flex cursor-pointer flex-col justify-between border-2 p-2.5 transition-all duration-200 hover:shadow-lg md:p-3",
                       isFilled
                         ? `${measurement.borderColor} ${measurement.bgColor} shadow-md`
                         : "border-border bg-card hover:border-primary/30 hover:bg-accent/5"
@@ -282,39 +337,34 @@ export default function HomePage() {
                   >
                     {/* Status Badge */}
                     {isFilled && (
-                      <div className="absolute right-2 top-2">
-                        <CheckCircle2 className={cn("h-4 w-4 md:h-5 md:w-5", measurement.color)} />
+                      <div className="absolute right-1.5 top-1.5">
+                        <CheckCircle2 className={cn("h-4 w-4", measurement.color)} />
                       </div>
                     )}
 
-                    {/* Icon and Title */}
-                    <div className="mb-1.5">
+                    {/* Icon and Title - More Compact */}
+                    <div className="flex items-center gap-2">
                       <div
                         className={cn(
-                          "mb-1.5 inline-flex h-9 w-9 items-center justify-center rounded-lg md:h-10 md:w-10",
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg md:h-9 md:w-9",
                           measurement.bgColor
                         )}
                       >
-                        <Icon
-                          className={cn(
-                            "h-5 w-5 md:h-5 md:w-5",
-                            measurement.color
-                          )}
-                        />
+                        <Icon className={cn("h-4 w-4 md:h-5 md:w-5", measurement.color)} />
                       </div>
-                      <h3 className="text-xs font-bold text-foreground md:text-sm">
+                      <h3 className="text-xs font-bold leading-tight text-foreground md:text-sm">
                         {measurement.shortTitle}
                       </h3>
                     </div>
 
                     {/* Value Display */}
-                    <div className="mt-auto">
+                    <div className="mt-1.5">
                       {isFilled ? (
-                        <p className={cn("text-base font-bold md:text-lg", measurement.color)}>
+                        <p className={cn("text-sm font-bold leading-tight md:text-base", measurement.color)}>
                           {displayValue}
                         </p>
                       ) : (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs leading-tight text-muted-foreground">
                           Toque para preencher
                         </p>
                       )}
@@ -363,12 +413,20 @@ export default function HomePage() {
                       </div>
                     ))}
                     <div className="space-y-2">
-                      <Label className="font-semibold">Horário</Label>
+                      <Label className="font-semibold">Horário da Medição</Label>
                       <div className="flex items-center gap-3 rounded-lg border-2 bg-muted/50 px-3 py-2.5">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="font-semibold text-foreground">
                           {currentTime}
                         </span>
+                        {currentSchedule && (
+                          <>
+                            <span className="text-muted-foreground">•</span>
+                            <Badge variant="secondary" className="text-xs">
+                              Grupo: {currentSchedule}
+                            </Badge>
+                          </>
+                        )}
                       </div>
                     </div>
                     <DialogFooter className="gap-2">
@@ -391,12 +449,12 @@ export default function HomePage() {
           })}
         </div>
 
-        {/* Confirm Button */}
-        <div className="mt-3 md:mt-4">
+        {/* Compact Confirm Button */}
+        <div className="mt-2.5 md:mt-3">
           <Button
             onClick={handleConfirm}
             disabled={filledCount === 0}
-            className={cn("h-12 w-full text-sm font-bold shadow-lg transition-all md:h-14 md:text-base", buttonState.color)}
+            className={cn("h-11 w-full text-sm font-bold shadow-lg transition-all md:h-12 md:text-base", buttonState.color)}
           >
             {filledCount === totalCount ? (
               <CheckCircle2 className="mr-2 h-5 w-5" />
