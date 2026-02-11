@@ -12,147 +12,117 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
-  Activity,
-  Heart,
+  Gauge,
+  HeartPulse,
   Thermometer,
   Droplet,
   Weight,
   AlertCircle,
-  Plus,
-  Clock,
-  CalendarDays,
-  Gauge,
-  HeartPulse,
-  TrendingUp,
   CheckCircle2,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type MeasurementValue = {
+  [key: string]: string;
+};
+
+type FilledData = {
+  [key: string]: MeasurementValue;
+};
 
 const measurements = [
   {
     id: "pressao",
     icon: Gauge,
     title: "Pressão Arterial",
-    description: "Sistólica e Diastólica",
-    color: "text-red-500",
-    bgColor: "bg-red-500/10",
-    borderColor: "hover:border-red-500/30",
+    shortTitle: "PA",
+    color: "text-red-600",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-200",
+    hoverBorder: "hover:border-red-400",
     fields: [
-      {
-        id: "sistolica",
-        label: "Pressão Sistólica (máxima)",
-        placeholder: "120",
-        unit: "mmHg",
-      },
-      {
-        id: "diastolica",
-        label: "Pressão Diastólica (mínima)",
-        placeholder: "80",
-        unit: "mmHg",
-      },
+      { id: "sistolica", label: "Sistólica", placeholder: "120", unit: "mmHg" },
+      { id: "diastolica", label: "Diastólica", placeholder: "80", unit: "mmHg" },
     ],
   },
   {
     id: "frequencia",
     icon: HeartPulse,
     title: "Frequência Cardíaca",
-    description: "Batimentos por minuto",
-    color: "text-pink-500",
-    bgColor: "bg-pink-500/10",
-    borderColor: "hover:border-pink-500/30",
-    fields: [
-      {
-        id: "bpm",
-        label: "Batimentos por minuto (BPM)",
-        placeholder: "72",
-        unit: "bpm",
-      },
-    ],
+    shortTitle: "FC",
+    color: "text-pink-600",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+    hoverBorder: "hover:border-pink-400",
+    fields: [{ id: "bpm", label: "BPM", placeholder: "72", unit: "bpm" }],
   },
   {
     id: "temperatura",
     icon: Thermometer,
-    title: "Temperatura Corporal",
-    description: "Em graus Celsius",
-    color: "text-orange-500",
-    bgColor: "bg-orange-500/10",
-    borderColor: "hover:border-orange-500/30",
-    fields: [
-      {
-        id: "temp",
-        label: "Temperatura corporal",
-        placeholder: "36.5",
-        unit: "°C",
-      },
-    ],
+    title: "Temperatura",
+    shortTitle: "TEMP",
+    color: "text-orange-600",
+    bgColor: "bg-orange-50",
+    borderColor: "border-orange-200",
+    hoverBorder: "hover:border-orange-400",
+    fields: [{ id: "temp", label: "Temperatura", placeholder: "36.5", unit: "°C" }],
   },
   {
     id: "saturacao",
     icon: Droplet,
-    title: "Saturação de O₂",
-    description: "SpO₂ percentual",
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
-    borderColor: "hover:border-blue-500/30",
-    fields: [
-      {
-        id: "spo2",
-        label: "Saturação de oxigênio (SpO₂)",
-        placeholder: "98",
-        unit: "%",
-      },
-    ],
+    title: "Saturação O₂",
+    shortTitle: "SpO₂",
+    color: "text-blue-600",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-200",
+    hoverBorder: "hover:border-blue-400",
+    fields: [{ id: "spo2", label: "SpO₂", placeholder: "98", unit: "%" }],
   },
   {
     id: "peso",
     icon: Weight,
-    title: "Peso Corporal",
-    description: "Em kilogramas",
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-    borderColor: "hover:border-green-500/30",
-    fields: [
-      {
-        id: "weight",
-        label: "Peso atual em kg",
-        placeholder: "70.5",
-        unit: "kg",
-      },
-    ],
+    title: "Peso",
+    shortTitle: "PESO",
+    color: "text-green-600",
+    bgColor: "bg-green-50",
+    borderColor: "border-green-200",
+    hoverBorder: "hover:border-green-400",
+    fields: [{ id: "weight", label: "Peso", placeholder: "70.5", unit: "kg" }],
   },
   {
     id: "dor",
     icon: AlertCircle,
     title: "Nível de Dor",
-    description: "Escala de 0 a 10",
-    color: "text-yellow-500",
-    bgColor: "bg-yellow-500/10",
-    borderColor: "hover:border-yellow-500/30",
-    fields: [
-      {
-        id: "pain",
-        label: "Intensidade da dor (0 = sem dor, 10 = dor máxima)",
-        placeholder: "0",
-        unit: "/10",
-      },
-    ],
+    shortTitle: "DOR",
+    color: "text-amber-600",
+    bgColor: "bg-amber-50",
+    borderColor: "border-amber-200",
+    hoverBorder: "hover:border-amber-400",
+    fields: [{ id: "pain", label: "Dor (0-10)", placeholder: "0", unit: "/10" }],
   },
 ];
 
-const schedules = [
-  { time: "08:00", completed: true },
-  { time: "14:00", completed: true },
-  { time: "20:00", completed: false },
-];
-
 export default function HomePage() {
+  const [filledData, setFilledData] = useState<FilledData>({});
   const [open, setOpen] = useState<string | null>(null);
-  const completedToday = schedules.filter((s) => s.completed).length;
-  const totalSchedules = schedules.length;
-  const progress = (completedToday / totalSchedules) * 100;
+  const [showWarning, setShowWarning] = useState(false);
+  const [showConfirmAlert, setShowConfirmAlert] = useState(false);
+  const [pendingMeasurementId, setPendingMeasurementId] = useState<string | null>(null);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString("pt-BR", {
@@ -161,154 +131,175 @@ export default function HomePage() {
     });
   };
 
-  const getCurrentDate = () => {
-    return new Date().toLocaleDateString("pt-BR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+  const filledCount = Object.keys(filledData).length;
+  const totalCount = measurements.length;
+
+  const handleOpenDialog = (measurementId: string) => {
+    if (filledData[measurementId]) {
+      setPendingMeasurementId(measurementId);
+      setShowWarning(true);
+    } else {
+      setOpen(measurementId);
+    }
   };
 
+  const handleProceedToEdit = () => {
+    setShowWarning(false);
+    if (pendingMeasurementId) {
+      setOpen(pendingMeasurementId);
+    }
+  };
+
+  const handleSubmit = (measurementId: string, e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const values: MeasurementValue = {};
+    
+    formData.forEach((value, key) => {
+      values[key] = value.toString();
+    });
+
+    setFilledData((prev) => ({
+      ...prev,
+      [measurementId]: values,
+    }));
+    setOpen(null);
+  };
+
+  const handleConfirm = () => {
+    if (filledCount === 0) {
+      return;
+    }
+    
+    if (filledCount < totalCount) {
+      setShowConfirmAlert(true);
+    } else {
+      // All filled - confirm successfully
+      alert("Sinais vitais confirmados com sucesso!");
+    }
+  };
+
+  const getDisplayValue = (measurementId: string, measurement: typeof measurements[0]) => {
+    const data = filledData[measurementId];
+    if (!data) return null;
+
+    if (measurement.fields.length === 2) {
+      return `${data[measurement.fields[0].id]}/${data[measurement.fields[1].id]}`;
+    } else {
+      const field = measurement.fields[0];
+      return `${data[field.id]}${field.unit}`;
+    }
+  };
+
+  const getButtonState = () => {
+    if (filledCount === 0) return { color: "bg-muted text-muted-foreground cursor-not-allowed", label: "Preencha os sinais vitais" };
+    if (filledCount < totalCount) return { color: "bg-yellow-500 hover:bg-yellow-600 text-white", label: `Confirmar (${filledCount}/${totalCount})` };
+    return { color: "bg-green-500 hover:bg-green-600 text-white", label: "Confirmar Sinais Vitais" };
+  };
+
+  const buttonState = getButtonState();
+
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8 md:px-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-          <CalendarDays className="h-4 w-4" />
-          <span className="capitalize">{getCurrentDate()}</span>
-        </div>
-        <h1 className="mb-3 text-4xl font-extrabold text-foreground md:text-5xl">
-          Monitoramento Diário
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Registre seus sinais vitais e acompanhe sua saúde
-        </p>
-      </div>
-
-      {/* Progress Card */}
-      <Card className="relative mb-8 overflow-hidden border-2 bg-gradient-to-br from-card to-accent/20 p-8 shadow-lg">
-        <div className="absolute right-4 top-4 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
-        <div className="relative">
-          <div className="mb-6 flex items-start justify-between">
-            <div>
-              <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold text-primary">
-                  Progresso de Hoje
-                </span>
-              </div>
-              <h2 className="mb-2 text-3xl font-bold text-foreground">
-                {completedToday} de {totalSchedules}
-              </h2>
-              <p className="text-muted-foreground">medições realizadas</p>
+    <div className="flex h-[calc(100vh-5rem)] flex-col md:h-[calc(100vh-5rem)]">
+      <div className="container mx-auto flex h-full max-w-6xl flex-col px-4 py-4 md:py-6">
+        {/* Compact Header */}
+        <div className="mb-4 flex items-center justify-between md:mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground md:text-3xl">
+              Sinais Vitais
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              <span>{getCurrentTime()}</span>
+              <span className="text-xs">• {filledCount}/{totalCount} preenchidos</span>
             </div>
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-              <span className="text-2xl font-bold text-primary">
-                {Math.round(progress)}%
-              </span>
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <div className="mb-3 h-3 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {schedules.map((schedule, idx) => (
-              <Badge
-                key={idx}
-                variant={schedule.completed ? "default" : "outline"}
-                className={`gap-2 px-4 py-2 ${
-                  schedule.completed
-                    ? "bg-primary shadow-md shadow-primary/20"
-                    : ""
-                }`}
-              >
-                {schedule.completed ? (
-                  <CheckCircle2 className="h-4 w-4" />
-                ) : (
-                  <Clock className="h-4 w-4" />
-                )}
-                <span className="font-semibold">{schedule.time}</span>
-              </Badge>
-            ))}
           </div>
         </div>
-      </Card>
 
-      {/* Measurements Grid */}
-      <div>
-        <h2 className="mb-6 text-2xl font-bold text-foreground">
-          Registrar Sinais Vitais
-        </h2>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Grid 2x3 - Fixed, no scroll */}
+        <div className="grid flex-1 grid-cols-2 gap-3 md:gap-4">
           {measurements.map((measurement) => {
             const Icon = measurement.icon;
+            const isFilled = !!filledData[measurement.id];
+            const displayValue = getDisplayValue(measurement.id, measurement);
+
             return (
               <Dialog
                 key={measurement.id}
                 open={open === measurement.id}
-                onOpenChange={(isOpen) =>
-                  setOpen(isOpen ? measurement.id : null)
-                }
+                onOpenChange={(isOpen) => {
+                  if (!isOpen) setOpen(null);
+                }}
               >
                 <DialogTrigger asChild>
                   <Card
-                    className={`group relative cursor-pointer overflow-hidden border-2 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${measurement.borderColor}`}
+                    onClick={() => handleOpenDialog(measurement.id)}
+                    className={cn(
+                      "group relative flex cursor-pointer flex-col justify-between border-2 p-3 transition-all duration-200 hover:shadow-lg md:p-4",
+                      isFilled
+                        ? `${measurement.borderColor} ${measurement.bgColor}`
+                        : "border-border hover:border-primary/30"
+                    )}
                   >
-                    <div className="absolute right-4 top-4 h-20 w-20 rounded-full opacity-0 blur-2xl transition-opacity group-hover:opacity-100" style={{ backgroundColor: measurement.color.replace('text-', '') + '20' }} />
-                    <div className="relative">
-                      <div className="mb-4 flex items-start justify-between">
-                        <div
-                          className={`inline-flex h-14 w-14 items-center justify-center rounded-xl ${measurement.bgColor} transition-transform group-hover:scale-110`}
-                        >
-                          <Icon className={`h-7 w-7 ${measurement.color}`} />
-                        </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                          <Plus className="h-5 w-5" />
-                        </div>
+                    {/* Status Badge */}
+                    {isFilled && (
+                      <div className="absolute right-2 top-2">
+                        <CheckCircle2 className={cn("h-5 w-5", measurement.color)} />
                       </div>
-                      <h3 className="mb-1 text-lg font-bold text-card-foreground">
-                        {measurement.title}
+                    )}
+
+                    {/* Icon and Title */}
+                    <div className="mb-2">
+                      <div
+                        className={cn(
+                          "mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg md:h-12 md:w-12",
+                          isFilled ? measurement.bgColor : "bg-muted"
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            "h-5 w-5 md:h-6 md:w-6",
+                            isFilled ? measurement.color : "text-muted-foreground"
+                          )}
+                        />
+                      </div>
+                      <h3 className="text-sm font-bold text-foreground md:text-base">
+                        {measurement.shortTitle}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {measurement.description}
-                      </p>
+                    </div>
+
+                    {/* Value Display */}
+                    <div className="mt-auto">
+                      {isFilled ? (
+                        <p className={cn("text-lg font-bold md:text-xl", measurement.color)}>
+                          {displayValue}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground md:text-sm">
+                          Toque para preencher
+                        </p>
+                      )}
                     </div>
                   </Card>
                 </DialogTrigger>
+
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-3 text-xl">
-                      <div
-                        className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${measurement.bgColor}`}
-                      >
-                        <Icon className={`h-6 w-6 ${measurement.color}`} />
+                    <DialogTitle className="flex items-center gap-3">
+                      <div className={cn("rounded-lg p-2", measurement.bgColor)}>
+                        <Icon className={cn("h-6 w-6", measurement.color)} />
                       </div>
-                      <div>
-                        <div>{measurement.title}</div>
-                        <div className="text-sm font-normal text-muted-foreground">
-                          {measurement.description}
-                        </div>
-                      </div>
+                      <span>{measurement.title}</span>
                     </DialogTitle>
                     <DialogDescription>
-                      Preencha os campos abaixo para registrar sua medição atual
+                      {isFilled
+                        ? "Você já preencheu este campo. Os valores anteriores serão substituídos."
+                        : "Registre sua medição atual"}
                     </DialogDescription>
                   </DialogHeader>
                   <form
-                    className="space-y-5 py-4"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      setOpen(null);
-                      // Here you would save the data
-                    }}
+                    onSubmit={(e) => handleSubmit(measurement.id, e)}
+                    className="space-y-4 py-4"
                   >
                     {measurement.fields.map((field) => (
                       <div key={field.id} className="space-y-2">
@@ -318,30 +309,27 @@ export default function HomePage() {
                         <div className="relative">
                           <Input
                             id={field.id}
+                            name={field.id}
                             type="number"
                             step="0.1"
                             placeholder={field.placeholder}
-                            className="h-12 pr-20 text-base"
+                            defaultValue={filledData[measurement.id]?.[field.id] || ""}
+                            className="h-11 pr-16 text-base"
                             required
                           />
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 font-semibold text-muted-foreground">
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
                             {field.unit}
                           </span>
                         </div>
                       </div>
                     ))}
                     <div className="space-y-2">
-                      <Label className="font-semibold">Horário da medição</Label>
-                      <div className="flex items-center gap-3 rounded-xl border-2 border-border bg-accent/50 px-4 py-3">
-                        <Clock className="h-5 w-5 text-primary" />
-                        <div>
-                          <span className="font-semibold text-foreground">
-                            {getCurrentTime()}
-                          </span>
-                          <span className="ml-2 text-sm text-muted-foreground">
-                            (agora)
-                          </span>
-                        </div>
+                      <Label className="font-semibold">Horário</Label>
+                      <div className="flex items-center gap-3 rounded-lg border-2 bg-muted/50 px-3 py-2.5">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-semibold text-foreground">
+                          {getCurrentTime()}
+                        </span>
                       </div>
                     </div>
                     <DialogFooter className="gap-2">
@@ -353,8 +341,7 @@ export default function HomePage() {
                       >
                         Cancelar
                       </Button>
-                      <Button type="submit" className="flex-1 font-bold shadow-lg shadow-primary/20">
-                        <CheckCircle2 className="mr-2 h-5 w-5" />
+                      <Button type="submit" className="flex-1 font-bold">
                         Salvar
                       </Button>
                     </DialogFooter>
@@ -364,26 +351,67 @@ export default function HomePage() {
             );
           })}
         </div>
+
+        {/* Confirm Button */}
+        <div className="mt-4 md:mt-6">
+          <Button
+            onClick={handleConfirm}
+            disabled={filledCount === 0}
+            className={cn("h-14 w-full text-base font-bold shadow-lg", buttonState.color)}
+          >
+            {filledCount === totalCount ? (
+              <CheckCircle2 className="mr-2 h-5 w-5" />
+            ) : filledCount > 0 ? (
+              <AlertTriangle className="mr-2 h-5 w-5" />
+            ) : null}
+            {buttonState.label}
+          </Button>
+        </div>
       </div>
 
-      {/* Quick Tips */}
-      <Card className="mt-8 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 p-6">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-            <Heart className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h3 className="mb-2 font-bold text-foreground">
-              Dica: Consistência é fundamental
-            </h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Registre suas medições nos mesmos horários todos os dias para
-              obter dados mais precisos e facilitar o acompanhamento da sua
-              saúde pelo seu médico.
-            </p>
-          </div>
-        </div>
-      </Card>
+      {/* Warning Dialog */}
+      <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Campo já preenchido</AlertDialogTitle>
+            <AlertDialogDescription>
+              Este campo já foi preenchido anteriormente. Se você continuar, o
+              registro anterior será substituído pelo novo valor.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingMeasurementId(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleProceedToEdit}>
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm Alert Dialog */}
+      <AlertDialog open={showConfirmAlert} onOpenChange={setShowConfirmAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Campos faltando
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Você preencheu apenas {filledCount} de {totalCount} campos. É
+              recomendado preencher todos os sinais vitais para um monitoramento
+              completo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar e preencher</AlertDialogCancel>
+            <AlertDialogAction onClick={() => alert("Sinais vitais confirmados parcialmente!")}>
+              Confirmar mesmo assim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
