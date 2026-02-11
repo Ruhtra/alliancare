@@ -242,12 +242,12 @@ export default function HomePage() {
 
   const confirmColor =
     slotStatus !== "current" ? "bg-muted text-muted-foreground"
-    : filledCount === 0 ? "bg-muted text-muted-foreground"
-    : filledCount < 6 ? "bg-gradient-to-r from-amber-500 to-yellow-400 text-white shadow-lg shadow-amber-500/25"
-    : "bg-gradient-to-r from-emerald-500 to-green-400 text-white shadow-lg shadow-emerald-500/25";
+      : filledCount === 0 ? "bg-muted text-muted-foreground"
+        : filledCount < 6 ? "bg-gradient-to-r from-amber-500 to-yellow-400 text-white shadow-lg shadow-amber-500/25"
+          : "bg-gradient-to-r from-emerald-500 to-green-400 text-white shadow-lg shadow-emerald-500/25";
 
   return (
-    <div className="flex h-[calc(100dvh-5rem)] flex-col overflow-hidden md:h-[calc(100dvh-5.5rem)]">
+    <div className="flex h-[calc(100dvh-6rem)] flex-col overflow-hidden md:h-[calc(100dvh-5.5rem)]">
       <div className="flex h-full flex-col px-4 py-3 md:mx-auto md:max-w-3xl md:px-6 md:py-4">
 
         {/* ── Hero Header ── */}
