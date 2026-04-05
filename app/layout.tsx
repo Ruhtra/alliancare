@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "VigiDoc - Monitoramento de Sinais Vitais",
   description: "Aplicação de monitoramento diário de sinais vitais para pacientes",
+};
+
+export const viewport: Viewport = {
   themeColor: "#003366",
 };
 
