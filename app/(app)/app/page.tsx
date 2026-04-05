@@ -189,6 +189,7 @@ export default function HomePage() {
   const [isCompact, setIsCompact] = useState(false);
 
   // Mock data
+  const userName = "Maria";
   const streak = 5;
   const nextAlarm = "18:00";
 
@@ -666,21 +667,17 @@ export default function HomePage() {
             <div>
               <div className="flex items-center gap-2">
                 <PeriodIcon className="h-5 w-5" />
-                <span className={cn("font-bold", isCompact ? "text-lg" : "text-xl")}>{period.label}</span>
+                <span className={cn("font-bold", isCompact ? "text-lg" : "text-xl")}>{period.label}, {userName}!</span>
               </div>
               <p className={cn("mt-1 font-medium text-white/80", isCompact ? "text-xs" : "text-sm")}>
-                {currentTime}
+                {currentTime} - {todaySessions.length} {todaySessions.length === 1 ? "medição" : "medições"} hoje
               </p>
             </div>
 
-            <div className={cn("text-right", isCompact ? "space-y-0.5" : "space-y-1")}>
-              <div className="flex items-center justify-end gap-1.5 text-xs text-white/80">
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-xs font-medium backdrop-blur-sm">
                 <Bell className="h-3.5 w-3.5" />
-                Próximo: {nextAlarm}
-              </div>
-              <div className="flex items-center justify-end gap-1.5 text-xs text-white/80">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Hoje: {todaySessions.length} sessões
+                {nextAlarm}
               </div>
             </div>
           </div>
@@ -728,36 +725,63 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Streak Card */}
-      <Card className={cn("border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50", isCompact ? "mb-3 p-3" : "mb-4 p-4")}>
-        <div className="flex items-center justify-between">
+      {/* Streak Card - Expanded */}
+      <Card className={cn("border-2 border-orange-200 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50", isCompact ? "mb-3 p-3" : "mb-4 p-4")}>
+        {/* Header Row */}
+        <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30">
               <Flame className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-2xl font-extrabold text-orange-600">{streak} dias</p>
-              <p className="text-xs font-medium text-orange-600/70">Ofensiva atual</p>
+              <p className="text-xl font-extrabold text-orange-600">{streak} dias de ofensiva</p>
+              <p className="text-xs font-medium text-orange-600/70">Mínimo de 4 medições por dia</p>
             </div>
           </div>
+        </div>
 
-          {/* Mini streak map */}
-          <div className="flex items-center gap-1">
+        {/* Streak Map - Visual Timeline */}
+        <div className="rounded-xl bg-white/60 p-3">
+          <div className="flex items-center justify-between">
             {mockStreakDays.map((day, i) => (
-              <div key={i} className="flex flex-col items-center gap-1">
-                <div
-                  className={cn(
-                    "flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all",
-                    day.completed
-                      ? "bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow"
-                      : day.isToday
-                        ? "border-2 border-dashed border-orange-400 text-orange-500"
-                        : "bg-muted text-muted-foreground"
+              <div key={i} className="flex flex-col items-center">
+                <div className="relative">
+                  {/* Connection line */}
+                  {i < mockStreakDays.length - 1 && (
+                    <div
+                      className={cn(
+                        "absolute left-full top-1/2 h-0.5 w-4 -translate-y-1/2 md:w-6",
+                        day.completed && mockStreakDays[i + 1]?.completed
+                          ? "bg-gradient-to-r from-orange-400 to-amber-400"
+                          : "bg-muted"
+                      )}
+                    />
                   )}
-                >
-                  {day.completed ? day.count : day.isToday ? "?" : "-"}
+                  {/* Day circle */}
+                  <div
+                    className={cn(
+                      "relative flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-all md:h-10 md:w-10",
+                      day.completed
+                        ? "bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/30"
+                        : day.isToday
+                          ? "border-2 border-dashed border-orange-400 bg-white text-orange-500"
+                          : "bg-muted/50 text-muted-foreground"
+                    )}
+                  >
+                    {day.completed && <CheckCircle2 className="h-4 w-4" />}
+                    {day.isToday && <span>?</span>}
+                    {day.isFuture && <span className="text-[10px]">-</span>}
+                  </div>
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground">{day.date}</span>
+                <span className={cn(
+                  "mt-1.5 text-[10px] font-semibold",
+                  day.isToday ? "text-orange-600" : "text-muted-foreground"
+                )}>
+                  {day.date}
+                </span>
+                {day.completed && (
+                  <span className="text-[9px] font-medium text-orange-500">{day.count} med.</span>
+                )}
               </div>
             ))}
           </div>
