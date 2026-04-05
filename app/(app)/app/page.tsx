@@ -59,6 +59,85 @@ type Session = {
 const SESSION_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 const COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes cooldown
 
+// Health level thresholds for each measurement
+type HealthLevel = "good" | "warning" | "critical";
+
+const getHealthLevel = (id: string, data: MeasurementValue): HealthLevel => {
+  switch (id) {
+    case "pressao": {
+      const sys = parseInt(data.sistolica || "0");
+      const dia = parseInt(data.diastolica || "0");
+      if (sys >= 180 || sys < 90 || dia >= 120 || dia < 60) return "critical";
+      if (sys >= 140 || sys < 100 || dia >= 90 || dia < 70) return "warning";
+      return "good";
+    }
+    case "frequencia": {
+      const bpm = parseInt(data.bpm || "0");
+      if (bpm > 120 || bpm < 50) return "critical";
+      if (bpm > 100 || bpm < 60) return "warning";
+      return "good";
+    }
+    case "temperatura": {
+      const temp = parseFloat(data.temp || "0");
+      if (temp >= 39 || temp < 35) return "critical";
+      if (temp >= 37.5 || temp < 36) return "warning";
+      return "good";
+    }
+    case "saturacao": {
+      const spo2 = parseInt(data.spo2 || "0");
+      if (spo2 < 90) return "critical";
+      if (spo2 < 95) return "warning";
+      return "good";
+    }
+    case "peso": {
+      return "good"; // Weight doesn't have critical levels
+    }
+    case "dor": {
+      const pain = parseInt(data.pain || "0");
+      if (pain >= 7) return "critical";
+      if (pain >= 4) return "warning";
+      return "good";
+    }
+    default:
+      return "good";
+  }
+};
+
+const healthLevelStyles = {
+  good: {
+    bg: "bg-emerald-50",
+    border: "border-emerald-300",
+    text: "text-emerald-600",
+    gradient: "from-emerald-500 to-green-500",
+    iconBg: "bg-emerald-500",
+  },
+  warning: {
+    bg: "bg-amber-50",
+    border: "border-amber-300",
+    text: "text-amber-600",
+    gradient: "from-amber-500 to-yellow-500",
+    iconBg: "bg-amber-500",
+  },
+  critical: {
+    bg: "bg-red-50",
+    border: "border-red-300",
+    text: "text-red-600",
+    gradient: "from-red-500 to-rose-500",
+    iconBg: "bg-red-500",
+  },
+};
+
+// Get the worst health level from a session
+const getSessionHealthLevel = (data: FilledData): HealthLevel => {
+  let worstLevel: HealthLevel = "good";
+  for (const [id, vals] of Object.entries(data)) {
+    const level = getHealthLevel(id, vals);
+    if (level === "critical") return "critical";
+    if (level === "warning") worstLevel = "warning";
+  }
+  return worstLevel;
+};
+
 const measurements = [
   {
     id: "pressao",
@@ -481,6 +560,8 @@ export default function HomePage() {
               const Icon = m.icon;
               const filled = !!filledData[m.id];
               const val = getDisplayValue(m.id, m, filledData);
+              const healthLevel = filled ? getHealthLevel(m.id, filledData[m.id]) : null;
+              const levelStyle = healthLevel ? healthLevelStyles[healthLevel] : null;
 
               return (
                 <Dialog
@@ -492,12 +573,16 @@ export default function HomePage() {
                     onClick={() => openDialog(m.id)}
                     className={cn(
                       "group relative flex cursor-pointer flex-col overflow-hidden border-2 transition-all duration-200 hover:shadow-lg active:scale-[0.98]",
-                      filled
-                        ? `${m.borderColor} ${m.lightBg} shadow-md`
+                      filled && levelStyle
+                        ? `${levelStyle.border} ${levelStyle.bg} shadow-md`
                         : "border-border bg-card hover:border-primary/30"
                     )}
                   >
-                    <div className={cn("h-1 w-full bg-gradient-to-r", m.bgGradient, !filled && "opacity-30")} />
+                    <div className={cn(
+                      "h-1 w-full bg-gradient-to-r",
+                      filled && levelStyle ? levelStyle.gradient : m.bgGradient,
+                      !filled && "opacity-30"
+                    )} />
 
                     <div className="flex flex-1 items-center gap-2.5 p-2.5">
                       <div
@@ -512,13 +597,15 @@ export default function HomePage() {
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-muted-foreground">{m.shortTitle}</p>
                         {filled ? (
-                          <p className={cn("truncate text-base font-bold", m.color)}>{val}</p>
+                          <p className={cn("truncate text-base font-bold", levelStyle?.text || m.color)}>{val}</p>
                         ) : (
                           <p className="text-xs text-muted-foreground">Toque</p>
                         )}
                       </div>
 
-                      {filled && <CheckCircle2 className={cn("h-4 w-4 shrink-0", m.color)} />}
+                      {filled && healthLevel && (
+                        <div className={cn("h-4 w-4 shrink-0 rounded-full", levelStyle?.iconBg)} />
+                      )}
                     </div>
                   </Card>
 
